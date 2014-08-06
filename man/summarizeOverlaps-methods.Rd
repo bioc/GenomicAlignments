@@ -137,10 +137,12 @@ IntersectionNotEmpty(features, reads, ignore.strand=FALSE, inter.feature=TRUE)
     of the annotation are removed before counting.
   }
   \item{...}{
-    Additional arguments for BAM file methods such as \code{singleEnd},
-    \code{fragments} or \code{param} that apply to the reading of
-    records from a file (see below). Providing \code{count.mapped.reads=TRUE} 
-    include additional passes through the BAM file to collect statistics 
+    Additional arguments passed to functions or methods called
+    from within \code{summarizeOverlaps}. For BAM file methods
+    arguments may include \code{singleEnd}, \code{fragments} or
+    \code{param} which apply to reading records from a file
+    (see below). Providing \code{count.mapped.reads=TRUE} include
+    additional passes through the BAM file to collect statistics
     similar to those from \code{countBam}.
   }
   \item{singleEnd}{
