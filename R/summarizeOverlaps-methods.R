@@ -32,8 +32,13 @@ setGeneric("summarizeOverlaps", signature=c("features", "reads"),
 .summarizeOverlaps <- function(features, reads, mode, ignore.strand,
                                ..., inter.feature=inter.feature)
 {
-    if (all(strand(reads) == "*"))
-        ignore.strand <- TRUE
+    if (class(reads) == "GRangesList") {
+        if (all(unlist(strand(reads), use.names=FALSE) == "*"))
+            ignore.strand <- TRUE
+    } else {
+        if (all(strand(reads) == "*"))
+            ignore.strand <- TRUE
+    }
     mode <- match.fun(mode)
     counts <- .dispatchOverlaps(features, reads, mode, ignore.strand,
                                 inter.feature=inter.feature)
