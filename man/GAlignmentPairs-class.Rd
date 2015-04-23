@@ -53,6 +53,11 @@
 
 \description{
   The GAlignmentPairs class is a container for "genomic alignment pairs".
+
+  IMPORTANT NOTE: The GAlignmentPairs container can only hold \emph{concordant}
+  pairs at the moment, that is, pairs where the 2 alignments are on the
+  opposite strands of the same reference sequence. This will change in the
+  next BioC release (BioC 3.2, scheduled for October 2015).
 }
 
 \details{
