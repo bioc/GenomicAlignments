@@ -274,8 +274,9 @@
 
       Return a \link{GRanges} object (for \code{granges()}) or
       \link[IRanges]{IRanges}) object (for \code{ranges()}) \emph{parallel}
-      to \code{x} where the i-th element is the genomic range spanned by
-      the i-th alignment in \code{x}.
+      to \code{x} where the i-th element is the range of the genomic region
+      spanned by the i-th alignment in \code{x}. All gaps in the region are
+      ignored.
 
       If \code{use.names} is TRUE, then the names on \code{x} 
       (if any) are propagated to the returned object.
