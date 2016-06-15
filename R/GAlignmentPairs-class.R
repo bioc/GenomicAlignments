@@ -125,9 +125,19 @@ setMethod("second", "GAlignmentPairs",
     }
 )
 
-          
 setMethod("seqnames", "GAlignmentPairs",
-    function(x) seqnames(x@first)
+    function(x)
+    {
+        ans <- seqnames(x@first)
+        if (any(ans != seqnames(x@last)))
+            stop(wmsg("For some pairs in 'x', the 2 alignments are not on ",
+                      "the same chromosome. Cannot associate a sequence name ",
+                      "to them. ",
+                      "Note that the GAlignmentPairs container only supports ",
+                      "pairs where the 2 alignments are on opposite strands ",
+                      "of the same chromosome at the moment."))
+        ans
+    }
 )
 
 setMethod("strand", "GAlignmentPairs",
@@ -135,10 +145,20 @@ setMethod("strand", "GAlignmentPairs",
     {
         if (strandMode(x) == 0L)
             return(strand(Rle("*", length(x))))
-        if (strandMode(x) == 1L)
-            strand(x@first)
-        else
-            strand(x@last)
+        x_first_strand <- strand(x@first)
+        x_last_strand <- strand(x@last)
+        if (any(x_first_strand == x_last_strand))
+            stop(wmsg("For some pairs in 'x', the 2 alignments are not on ",
+                      "opposite strands. Cannot associate a strand to them. ",
+                      "Note that the GAlignmentPairs container only supports ",
+                      "pairs where the 2 alignments are on opposite strands ",
+                      "of the same chromosome at the moment."))
+        if (strandMode(x) == 1L) {
+            ans <- x_first_strand
+        } else {
+            ans <- x_last_strand
+        }
+        ans
     }
 )
 
@@ -402,6 +422,39 @@ setMethod("unlist", "GAlignmentPairs",
 ### Coercion.
 ###
 
+setMethod("ranges", "GAlignmentPairs",
+    function(x, use.names=TRUE, use.mcols=FALSE)
+    {
+        if (!isTRUEorFALSE(use.names))
+            stop("'use.names' must be TRUE or FALSE")
+        if (!isTRUEorFALSE(use.mcols))
+            stop("'use.mcols' must be TRUE or FALSE")
+        x_first_ranges <- ranges(x@first, use.names=FALSE)
+        x_last_ranges <- ranges(x@last, use.names=FALSE)
+        ans <- punion(x_first_ranges, x_last_ranges, fill.gap=TRUE)
+        if (use.names)
+            names(ans) <- names(x)
+        if (use.mcols)
+            mcols(ans) <- mcols(x)
+        ans
+    }
+)
+
+setMethod("granges", "GAlignmentPairs",
+    function(x, use.names=TRUE, use.mcols=FALSE)
+    {
+        if (!isTRUEorFALSE(use.mcols))
+            stop("'use.mcols' must be TRUE or FALSE")
+        ans <- GRanges(seqnames(x),
+                       ranges(x, use.names=use.names),
+                       strand(x),
+                       seqinfo=seqinfo(x))
+        if (use.mcols)
+            mcols(ans) <- mcols(x)
+        ans
+    }
+)
+
 ### Shrink CompressedList 'x' (typically a GRangesList) by half by combining
 ### pairs of consecutive top-level elements.
 shrinkByHalf <- function(x)
@@ -425,8 +478,11 @@ shrinkByHalf <- function(x)
 ### FIXME: Behavior is currently undefined (and undocumented) when
 ### strandMode(x) is 0. Fix this!
 setMethod("grglist", "GAlignmentPairs",
-    function(x, use.mcols=FALSE, order.as.in.query=FALSE, drop.D.ranges=FALSE)
+    function(x, use.names=TRUE, use.mcols=FALSE,
+                order.as.in.query=FALSE, drop.D.ranges=FALSE)
     {
+        if (!isTRUEorFALSE(use.names))
+            stop("'use.names' must be TRUE or FALSE")
         if (!isTRUEorFALSE(use.mcols))
             stop("'use.mcols' must be TRUE or FALSE")
         if (!identical(order.as.in.query, FALSE)) {
@@ -457,7 +513,8 @@ setMethod("grglist", "GAlignmentPairs",
                        order.as.in.query=TRUE,
                        drop.D.ranges=drop.D.ranges)
         ans <- shrinkByHalf(grl)
-        names(ans) <- names(x)
+        if (use.names)
+            names(ans) <- names(x)
         ans_mcols <- DataFrame(query.break=mcols(ans)$nelt1)
         if (use.mcols)
             ans_mcols <- cbind(ans_mcols, x_mcols)
@@ -466,28 +523,14 @@ setMethod("grglist", "GAlignmentPairs",
     }
 )
 
-setMethod("granges", "GAlignmentPairs",
-    function(x, use.mcols=FALSE)
-    {
-        if (!isTRUEorFALSE(use.mcols))
-            stop("'use.mcols' must be TRUE or FALSE")
-        rg <- range(grglist(x))
-        if (!all(elementNROWS(rg) == 1L))
-            stop("For some pairs in 'x', the first and last alignments ",
-                 "are not aligned to the same chromosome and strand. ",
-                 "Cannot extract a single range for them.")
-        ans <- unlist(rg)
-        if (use.mcols)
-            mcols(ans) <- mcols(x)
-        ans
-    }
-)
-
-setAs("GAlignmentPairs", "GRangesList",
-    function(from) grglist(from, use.mcols=TRUE)
+setAs("GAlignmentPairs", "Ranges",
+    function(from) ranges(from, use.names=TRUE, use.mcols=TRUE)
 )
 setAs("GAlignmentPairs", "GRanges",
-    function(from) granges(from, use.mcols=TRUE)
+    function(from) granges(from, use.names=TRUE, use.mcols=TRUE)
+)
+setAs("GAlignmentPairs", "GRangesList",
+    function(from) grglist(from, use.names=TRUE, use.mcols=TRUE)
 )
 setAs("GAlignmentPairs", "GAlignments",
     function(from) unlist(from, use.names=TRUE)

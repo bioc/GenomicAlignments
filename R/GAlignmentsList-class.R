@@ -187,10 +187,56 @@ setMethod("updateObject", "GAlignmentsList",
 ### Coercion.
 ###
 
-setMethod("grglist", "GAlignmentsList",
-    function(x, use.mcols=FALSE, order.as.in.query=FALSE, 
-             drop.D.ranges=FALSE, ignore.strand=FALSE) 
+setMethod("ranges", "GAlignmentsList",
+    function(x, use.names=TRUE, use.mcols=FALSE)
     {
+        if (!isTRUEorFALSE(use.names))
+            stop("'use.names' must be TRUE or FALSE")
+        if (!isTRUEorFALSE(use.mcols))
+            stop("'use.mcols' must be TRUE or FALSE")
+        ans <- unlist(range(rglist(x)), use.names=FALSE)
+        if (use.names)
+            names(ans) <- names(x)
+        if (use.mcols)
+            mcols(ans) <- mcols(x)
+        ans
+    }
+)
+
+setMethod("granges", "GAlignmentsList",
+    function(x, use.names=TRUE, use.mcols=FALSE, ignore.strand=FALSE) 
+    {
+        if (!isTRUEorFALSE(use.mcols))
+            stop("'use.mcols' must be TRUE or FALSE")
+        if (ignore.strand)
+            strand(x@unlistData) <- "*"
+        msg <- paste0("For some list elements in 'x', the ranges are ",
+                      "not on the same chromosome and strand. ",
+                      "Cannot extract a single range for them. ",
+                      "As a consequence, the returned GRanges object ",
+                      "is not parallel to 'x'.")
+        rg <- range(grglist(x, ignore.strand=ignore.strand))
+        is_one_to_one <- all(elementNROWS(rg) == 1L)
+        if (!is_one_to_one && all(width(x@partitioning) > 0)) {
+            if (ignore.strand)
+                warning(msg)
+            else
+                warning(paste0(msg, " Consider using 'ignore.strand=TRUE'."))
+        }
+        ans <- unlist(rg, use.names=use.names)
+        if (is_one_to_one && use.mcols)
+            mcols(ans) <- mcols(x)
+        ans
+    }
+)
+
+setMethod("grglist", "GAlignmentsList",
+    function(x, use.names=TRUE, use.mcols=FALSE,
+                order.as.in.query=FALSE, drop.D.ranges=FALSE,
+                ignore.strand=FALSE) 
+    {
+        if (!isTRUEorFALSE(use.names))
+            stop("'use.names' must be TRUE or FALSE")
         if (!isTRUEorFALSE(use.mcols))
             stop("'use.mcols' must be TRUE or FALSE")
         if (!identical(order.as.in.query, FALSE)) {
@@ -205,42 +251,20 @@ setMethod("grglist", "GAlignmentsList",
         unlisted_x <- unlist(x, use.names=FALSE)
         grl <- grglist(unlisted_x, drop.D.ranges=drop.D.ranges)
         ans <- IRanges:::regroupBySupergroup(grl, x)
+        if (use.names)
+            names(ans) <- names(x)
         if (use.mcols)
             mcols(ans) <- mcols(x)
         ans
     }
 )
  
-setMethod("granges", "GAlignmentsList",
-    function(x, use.mcols=FALSE, ignore.strand=FALSE) 
-    {
-        if (!isTRUEorFALSE(use.mcols))
-            stop("'use.mcols' must be TRUE or FALSE")
-        if (ignore.strand)
-            strand(x@unlistData) <- "*"
-        msg <- paste0("For some list elements in 'x', the ranges are ",
-                      "not aligned to the same chromosome and strand. ",
-                      "Cannot extract a single range for them. ",
-                      "As a consequence, the returned GRanges object ",
-                      "is not parallel to 'x'.")
-        rg <- range(grglist(x, ignore.strand=ignore.strand))
-        is_one_to_one <- all(elementNROWS(rg) == 1L)
-        if (!is_one_to_one && all(width(x@partitioning) > 0)) {
-            if (ignore.strand)
-                warning(msg)
-            else
-                warning(paste0(msg, " Consider using 'ignore.strand=TRUE'."))
-        }
-        ans <- unlist(rg)
-        if (is_one_to_one && use.mcols)
-            mcols(ans) <- mcols(x)
-        ans
-    }
-)
-
 setMethod("rglist", "GAlignmentsList",
-    function(x, use.mcols=FALSE, order.as.in.query=FALSE, drop.D.ranges=FALSE)
+    function(x, use.names=TRUE, use.mcols=FALSE,
+                order.as.in.query=FALSE, drop.D.ranges=FALSE)
     {
+        if (!isTRUEorFALSE(use.names))
+            stop("'use.names' must be TRUE or FALSE")
         if (!isTRUEorFALSE(use.mcols))
             stop("'use.mcols' must be TRUE or FALSE")
         if (!identical(order.as.in.query, FALSE)) {
@@ -251,28 +275,25 @@ setMethod("rglist", "GAlignmentsList",
         unlisted_x <- unlist(x, use.names=FALSE)
         rgl <- rglist(unlisted_x, drop.D.ranges=drop.D.ranges)
         ans <- IRanges:::regroupBySupergroup(rgl, x)
+        if (use.names)
+            names(ans) <- names(x)
         if (use.mcols)
             mcols(ans) <- mcols(x)
         ans
     }
 )
 
-setMethod("ranges", "GAlignmentsList",
-    function(x) 
-        unlist(range(rglist(x)), use.names=FALSE)
-)
-
-setAs("GAlignmentsList", "GRangesList", 
-    function(from) grglist(from, use.mcols=TRUE)
+setAs("GAlignmentsList", "Ranges", 
+    function(from) ranges(from, use.names=TRUE, use.mcols=TRUE)
 )
 setAs("GAlignmentsList", "GRanges", 
-    function(from) granges(from, use.mcols=TRUE)
+    function(from) granges(from, use.names=TRUE, use.mcols=TRUE)
+)
+setAs("GAlignmentsList", "GRangesList", 
+    function(from) grglist(from, use.names=TRUE, use.mcols=TRUE)
 )
 setAs("GAlignmentsList", "RangesList", 
-    function(from) rglist(from, use.mcols=TRUE)
-)
-setAs("GAlignmentsList", "Ranges", 
-    function(from) ranges(from)
+    function(from) rglist(from, use.names=TRUE, use.mcols=TRUE)
 )
 
 setAs("GAlignmentPairs", "GAlignmentsList", 
