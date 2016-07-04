@@ -246,7 +246,8 @@ setGeneric("readGAlignmentPairs", signature="file",
                      "not on opposite strands of the same chromosome. ",
                      "Note that the GAlignmentPairs container only supports ",
                      "pairs where the 2 alignments are on opposite strands ",
-                     "of the same chromosome at the moment."))
+                     "of the same chromosome at the moment. ",
+                     "This will change in BioC 3.4."))
         keep_idx <- which(!is_discordant)
         ans_first <- ans_first[keep_idx]
         ans_last <- ans_last[keep_idx]

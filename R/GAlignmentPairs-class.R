@@ -134,8 +134,8 @@ setMethod("seqnames", "GAlignmentPairs",
                       "the same chromosome. Cannot associate a sequence name ",
                       "to them. ",
                       "Note that the GAlignmentPairs container only supports ",
-                      "pairs where the 2 alignments are on opposite strands ",
-                      "of the same chromosome at the moment."))
+                      "pairs where the 2 alignments are on the same ",
+                      "chromosome at the moment."))
         ans
     }
 )
@@ -147,17 +147,12 @@ setMethod("strand", "GAlignmentPairs",
             return(strand(Rle("*", length(x))))
         x_first_strand <- strand(x@first)
         x_last_strand <- strand(x@last)
-        if (any(x_first_strand == x_last_strand))
-            stop(wmsg("For some pairs in 'x', the 2 alignments are not on ",
-                      "opposite strands. Cannot associate a strand to them. ",
-                      "Note that the GAlignmentPairs container only supports ",
-                      "pairs where the 2 alignments are on opposite strands ",
-                      "of the same chromosome at the moment."))
         if (strandMode(x) == 1L) {
             ans <- x_first_strand
         } else {
             ans <- x_last_strand
         }
+        ans[x_first_strand == x_last_strand] <- "*"
         ans
     }
 )

@@ -66,6 +66,7 @@
 
   IMPORTANT NOTE: The GAlignmentPairs container only supports pairs where the
   2 alignments are on opposite strands of the same chromosome at the moment.
+  This will change in BioC 3.4.
 }
 
 \details{
