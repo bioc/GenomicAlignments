@@ -48,6 +48,9 @@
 
 \alias{coerce,GenomicRanges,GAlignments-method}
 
+% subsetting
+\alias{getListElement,GAlignments-method}
+
 % "show" method:
 \alias{show,GAlignments-method}
 
