@@ -1,3 +1,20 @@
+CHANGES IN VERSION 1.40.0
+-------------------------
+
+NEW FEATURES
+
+    o Add 'seqinfo' argument to GAlignments() constructor function.
+
+BUG FIXES
+
+    o mapToAlignments() S at start 0 coordinate fix. By Fedor Bezrukov.
+      See https://github.com/Bioconductor/GenomicAlignments/pull/34
+
+    o Bugfix in isCompatibleWithSkippedExons() for single-end read alignments
+      w/ more than 3 junctions. By Robert Castelo.
+      See https://github.com/Bioconductor/GenomicAlignments/pull/32
+
+
 CHANGES IN VERSION 1.38.0
 -------------------------
 
