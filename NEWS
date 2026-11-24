@@ -1,3 +1,19 @@
+CHANGES IN VERSION 1.50.0
+-------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Move SummarizedExperiment from Depends to Suggests.
+      This reduces the number of hard dependencies (direct and indirect) from
+      29 to 18, which in turn significantly speeds up library(GenomicAlignments)
+      (speedup is approx. 2.2x).
+
+DEPRECATED AND DEFUNCT
+
+    o Defunct CIGAR utilities and sequenceLayer(). These were deprecated
+      in GenomicAlignments 1.45.5 (BioC 3.22).
+
+
 CHANGES IN VERSION 1.48.0
 -------------------------
 
